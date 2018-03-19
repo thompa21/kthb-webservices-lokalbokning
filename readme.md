@@ -12,3 +12,6 @@ https://apps.lib.kth.se/webservices/lokalbokning/api/v1/events?token={jwttoken}&
 
 #### API_KEY
 https://apps.lib.kth.se/webservices/lokalbokning/api/v1/events?api_key={apikey}&fromDate=2018-03-06&toDate=2018-03-06&limit=none
+
+#### Anonyma anrop för visning på t.ex bibliotekets smartsign-skärmar
+https://apps.lib.kth.se/webservices/lokalbokning/api/v1/noauth/events
