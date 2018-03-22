@@ -35,5 +35,7 @@ $router->group(['prefix' => 'api/v1/'], function ($router) {
     $router->post('events','EventController@createEvent');
     $router->post('events/{id}','EventController@updateEvent');    
     $router->delete('events/{id}','EventController@deleteEvent');
+
+    $router->get('eventstest','EventController@indextest');
 });
 // /orders?sort=-created_at

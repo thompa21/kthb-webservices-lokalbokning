@@ -22,7 +22,7 @@ class EventController extends Controller
     {
         //definiera vilka anrop som behöver nyckel/autentisering
         $this->middleware('auth', ['only' => [
-            'checkJWT', 'index', 'getEvent',  'createEvent', 'updateEvent','deleteEvent'
+            'checkJWT', 'index', 'indextest', 'getEvent',  'createEvent', 'updateEvent','deleteEvent'
         ]]);
     }
 
@@ -97,12 +97,35 @@ class EventController extends Controller
     {
         $query = DB::table('tevents');
         
+        /*
         if($request->input('fromDate')){
             $fromDate = $request->input('fromDate');
             $query = $query->when($fromDate, function($q) use ($fromDate) {
                 return $q
-                    ->where('Start_Date', '<=', $fromDate)
-                    ->where('End_Date', '>=', $fromDate);
+                    ->where('Start_Date', '>=', $fromDate);
+                    //->where('End_Date', '>=', $fromDate);
+            });
+        }
+
+        if($request->input('toDate')){
+            $toDate = $request->input('toDate');
+            $query = $query->when($toDate, function($q) use ($toDate) {
+                return $q
+                    ->where('Start_Date', '<=', $toDate);
+            });
+        }
+        */
+        if($request->input('fromDate') && $request->input('toDate')){
+            $fromDate = $request->input('fromDate');
+            $toDate = $request->input('toDate');
+            
+            //använd USE för att få med variabler
+            $query->where(function ($q) use($fromDate, $toDate) {
+                $q->where('Start_Date', '>=', $fromDate)
+                    ->where('Start_Date', '<=', $toDate);
+            })->orWhere(function($q) use($fromDate, $toDate) {
+                $q->where('End_Date', '>=', $fromDate)
+                    ->where('End_Date', '<=', $toDate);	
             });
         }
 
@@ -120,10 +143,49 @@ class EventController extends Controller
             $limit = 50;
         }
         if (is_numeric($limit)){
-            return response()->json($query->orderBy('Start_Time')->orderBy('End_Time')->take($limit)->get());
+            return response()->json($query->orderBy('Start_Date')->orderBy('Start_Time')->take($limit)->get());
         } else {
              //returnera endast alla om parameter limit = none. Men med paginering
-            return response()->json($query-orderBy('Start_Time')->orderBy('End_Time')->paginate(100));
+            return response()->json($query-orderBy('Start_Date')->orderBy('Start_Time')->paginate(100));
+        } 
+    }
+
+    public function indextest(Request $request)
+    {
+        $query = DB::table('tevents');
+        
+        if($request->input('fromDate') && $request->input('toDate')){
+            $fromDate = $request->input('fromDate');
+            $toDate = $request->input('toDate');
+            
+            //använd USE för att få med variabler
+            $query->where(function ($q) use($fromDate, $toDate) {
+                $q->where('Start_Date', '>=', $fromDate)
+                    ->where('Start_Date', '<=', $toDate);
+            })->orWhere(function($q) use($fromDate, $toDate) {
+                $q->where('End_Date', '>=', $fromDate)
+                    ->where('End_Date', '<=', $toDate);	
+            });
+        }
+
+        if($request->input('Event_Object')){
+            $Event_Object = $request->input('Event_Object');
+            $query = $query->when($Event_Object, function($q) use ($Event_Object) {
+                return $q->where('Event_Object', '=', $Event_Object);
+            });
+        }
+
+        if($request->input('limit')){
+            $limit = $request->input('limit');
+        } else {
+            //visa 50 rader som default
+            $limit = 50;
+        }
+        if (is_numeric($limit)){
+            return response()->json($query->orderBy('Start_Date')->orderBy('Start_Time')->take($limit)->get());
+        } else {
+             //returnera endast alla om parameter limit = none. Men med paginering
+            return response()->json($query-orderBy('Start_Date')->orderBy('Start_Time')->paginate(100));
         } 
     }
 

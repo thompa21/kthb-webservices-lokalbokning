@@ -30,7 +30,10 @@ class JWTController extends Controller
 
     public function index(Request $request)
     {
-        return response()->json("Valid Token"); 
+        //Om autentiserad skicka tillbaks ok
+        return response()->json([
+            'authorized' => true
+        ], 200);
     }
    
 }
