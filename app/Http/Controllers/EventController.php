@@ -40,14 +40,26 @@ class EventController extends Controller
     *************************************************/
     public function noauthindex(Request $request)
     {
-        $query = DB::table('tevents')->select('Event_ID', 'Event_Object', 'Event_Title', 'Start_Date', 'Start_Time', 'End_Date', 'End_Time');
+        $query = DB::table('tevents')
+        ->join('tobjects', 'tevents.Event_Object', '=', 'tobjects.Object')
+        ->select('Event_ID', 'Event_Object', 'Event_Title', 'Start_Date', 'Start_Time', 'End_Date', 'End_Time');
         
-        if($request->input('fromDate')){
+        
+        if($request->input('fromDate') && $request->input('toDate')){
             $fromDate = $request->input('fromDate');
-            $query = $query->when($fromDate, function($q) use ($fromDate) {
-                return $q
-                    ->where('Start_Date', '<=', $fromDate)
-                    ->where('End_Date', '>=', $fromDate);
+            $toDate = $request->input('toDate');
+            
+            //använd USE för att få med variabler
+            $query
+            ->where(function ($q) use($fromDate, $toDate) {
+                $q->where('Start_Date', '>=', $fromDate)
+                ->where('Start_Date', '<=', $toDate)
+                ->where('tobjects.Category', '=', 'room'); //Ful lösning... Dubblera den här raden nedan för att att få med villkoret för join??
+            })
+            ->orWhere(function($q) use($fromDate, $toDate) {
+                $q->where('End_Date', '>=', $fromDate)
+                ->where('End_Date', '<=', $toDate)
+                ->where('tobjects.Category', '=', 'room');	
             });
         }
 
@@ -57,13 +69,13 @@ class EventController extends Controller
                 return $q->where('Event_Object', '=', $Event_Object);
             });
         }
-
         if($request->input('limit')){
             $limit = $request->input('limit');
         } else {
             //visa 50 rader som default
             $limit = 50;
         }
+        
         if (is_numeric($limit)){
             return response()->json($query->orderBy('Start_Time')->orderBy('End_Time')->take($limit)->get());
         } else {
