@@ -48,6 +48,10 @@ class EventController extends Controller
         if($request->input('fromDate') && $request->input('toDate')){
             $fromDate = $request->input('fromDate');
             $toDate = $request->input('toDate');
+
+            //För tester
+            //$fromDate = "2018-05-16";
+            //$toDate = "2018-05-16";
             
             //använd USE för att få med variabler
             $query
