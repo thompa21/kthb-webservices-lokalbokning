@@ -162,7 +162,7 @@ class EventController extends Controller
             return response()->json($query->orderBy('Start_Date')->orderBy('Start_Time')->take($limit)->get());
         } else {
              //returnera endast alla om parameter limit = none. Men med paginering
-            return response()->json($query-orderBy('Start_Date')->orderBy('Start_Time')->paginate(100));
+            return response()->json($query->orderBy('Start_Date')->orderBy('Start_Time')->paginate(100));
         } 
     }
 

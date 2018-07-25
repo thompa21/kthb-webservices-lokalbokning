@@ -37,5 +37,8 @@ $router->group(['prefix' => 'api/v1/'], function ($router) {
     $router->delete('events/{id}','EventController@deleteEvent');
 
     $router->get('eventstest','EventController@indextest');
+
+    //objects
+    $router->get('objects','ObjectController@index');
 });
 // /orders?sort=-created_at
