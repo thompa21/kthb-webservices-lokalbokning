@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\tevent;
 use Illuminate\View;
 use DB; 
+use Carbon\Carbon; //PHP API extension for DateTime
 
 //TODO Validera inkommande data för create/update/delete
 class EventController extends Controller
@@ -37,6 +38,11 @@ class EventController extends Controller
      * se till att det inte finns några känsliga data
      * som returneras!
      * 
+     * Alla som har Category = room
+     * 
+     * Sätts som t ex "excluded" i DB för de rum 
+     * som övergått till TimeEdit
+     * 
     *************************************************/
     public function noauthindex(Request $request)
     {
@@ -54,17 +60,22 @@ class EventController extends Controller
             //$toDate = "2018-05-16";
             
             //använd USE för att få med variabler
+            //Plockar fram alla bokningar för en dag (anrop: $todate = $fromdate)
             $query
             ->where(function ($q) use($fromDate, $toDate) {
-                $q->where('Start_Date', '>=', $fromDate)
+                $q->where('End_Date', '>=', $fromDate)
                 ->where('Start_Date', '<=', $toDate)
+                ->where('tobjects.Category', '=', 'room')
                 ->where('tobjects.Category', '=', 'room'); //Ful lösning... Dubblera den här raden nedan för att att få med villkoret för join??
-            })
+            });
+            //TODO lösning för att plocka fram alla aktuella bokningar inom datumintervall
+/*
             ->orWhere(function($q) use($fromDate, $toDate) {
                 $q->where('End_Date', '>=', $fromDate)
                 ->where('End_Date', '<=', $toDate)
                 ->where('tobjects.Category', '=', 'room');	
             });
+*/
         }
 
         if($request->input('Event_Object')){
@@ -83,7 +94,7 @@ class EventController extends Controller
         if (is_numeric($limit)){
             return response()->json($query->orderBy('Start_Time')->orderBy('End_Time')->take($limit)->get());
         } else {
-             //returnera endast alla om parameter limit = none. Men med paginering
+             //returnera alla endast om parameter limit = none. Men med paginering
             return response()->json($query->orderBy('Start_Time')->orderBy('End_Time')->paginate(100));
         } 
     }
@@ -99,50 +110,51 @@ class EventController extends Controller
     {   
         if (is_numeric($id))
         {
-            $user = tevent::find($id)->first(['Event_ID', 'Event_Object', 'Event_Title', 'Start_Date', 'Start_Time', 'End_Date', 'End_Time']);
+            $event = tevent::find($id)->first(['Event_ID', 'Event_Object', 'Event_Title', 'Start_Date', 'Start_Time', 'End_Date', 'End_Time']);
         }
         else
         {
             $column = 'Event_Title';
-            $user = tevent::where($column , '=', $id)->first(['Event_ID', 'Event_Object', 'Event_Title', 'Start_Date', 'Start_Time', 'End_Date', 'End_Time']);
+            $event = tevent::where($column , '=', $id)->first(['Event_ID', 'Event_Object', 'Event_Title', 'Start_Date', 'Start_Time', 'End_Date', 'End_Time']);
         }
-        return response()->json($user);
+        return response()->json($event);
+    }
+
+    /*************************************************
+     * 
+     * Funktion som kan anropas utan några nycklar, 
+     * se till att det inte finns några känsliga data
+     * som returneras!
+     * 
+    *************************************************/
+    public function noauthgetCurrentServerTime()
+    {   
+        $currenttime = Carbon::now();
+        return response()->json($currenttime->format("Y-m-d H:i:s.u"));
     }
 
     public function index(Request $request)
     {
         $query = DB::table('tevents');
         
-        /*
-        if($request->input('fromDate')){
-            $fromDate = $request->input('fromDate');
-            $query = $query->when($fromDate, function($q) use ($fromDate) {
-                return $q
-                    ->where('Start_Date', '>=', $fromDate);
-                    //->where('End_Date', '>=', $fromDate);
-            });
-        }
-
-        if($request->input('toDate')){
-            $toDate = $request->input('toDate');
-            $query = $query->when($toDate, function($q) use ($toDate) {
-                return $q
-                    ->where('Start_Date', '<=', $toDate);
-            });
-        }
-        */
         if($request->input('fromDate') && $request->input('toDate')){
             $fromDate = $request->input('fromDate');
             $toDate = $request->input('toDate');
             
-            //använd USE för att få med variabler
-            $query->where(function ($q) use($fromDate, $toDate) {
-                $q->where('Start_Date', '>=', $fromDate)
-                    ->where('Start_Date', '<=', $toDate);
-            })->orWhere(function($q) use($fromDate, $toDate) {
+             //använd USE för att få med variabler
+            //Plockar fram alla bokningar för en dag (anrop: $todate = $fromdate)
+            $query
+            ->where(function ($q) use($fromDate, $toDate) {
                 $q->where('End_Date', '>=', $fromDate)
-                    ->where('End_Date', '<=', $toDate);	
+                ->where('Start_Date', '<=', $toDate);
             });
+            //TODO lösning för att plocka fram alla aktuella bokningar inom datumintervall
+/*
+            ->orWhere(function($q) use($fromDate, $toDate) {
+                $q->where('End_Date', '>=', $fromDate)
+                ->where('End_Date', '<=', $toDate)
+            });
+*/
         }
 
         if($request->input('Event_Object')){
@@ -209,35 +221,35 @@ class EventController extends Controller
     {   
         if (is_numeric($id))
         {
-            $user = tevent::find($id);
+            $event = tevent::find($id);
         }
         else
         {
             $column = 'Event_Title';
-            $user = tevent::where($column , '=', $id)->first();
+            $event = tevent::where($column , '=', $id)->first();
         }
-        return response()->json($user);
+        return response()->json($event);
     }
 
     public function createEvent(Request $request)
     {
-        $user = tevent::create($request->all());
-        return response()->json($user);
+        $event = tevent::create($request->all());
+        return response()->json($event);
     }
 
     public function updateEvent(Request $request, $id)
     {
-        $user = tevent::find($id);
-        $user->name = $request->input('name');
-        $user->level = $request->input('level');
-        $user->email = $request->input('email');
+        $event = tevent::find($id);
+        $event->Event_Title = $request->input('Event_Title');
+        $event->Event_Object = $request->input('Event_Object');
+        $event->Event_Org = $request->input('Event_Org');
         $user->save();
         return response()->json($user);   
     }
 
     public function deleteEvent($id){
-        $user = tevent::find($id);
-        $user->delete();
+        $event = tevent::find($id);
+        $event->delete();
         return response()->json('deleted');
     }
    

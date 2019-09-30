@@ -32,7 +32,28 @@ class tevent extends Model implements AuthenticatableContract, AuthorizableContr
      * @var array
      */
     protected $fillable = [
-         'Event_Title', 'Event_Object', 'Event_Booker'
+         'Event_Object', 
+         'Event_Title', 
+         'Event_Course_Code', 
+         'Event_Org', 
+         'Start_Date',
+         'End_Date',
+         'Event_Time',
+         'Start_Time',
+         'End_Time',
+         'Cust_Epost',
+         'Event_Number_Of_Persons',
+         'Event_Customer',
+         'Event_Tech_Support',
+         'Event_Furniture_Support',
+         'Event_Extra_Equipment',
+         'Event_Details',
+         'Date_Added',
+         'Event_Booker',
+         'Event_Kundnr',
+         'RT_thread',
+         'Fakturerad',
+         'Event_Status'
     ];
 
     /**

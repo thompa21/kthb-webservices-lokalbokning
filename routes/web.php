@@ -17,6 +17,7 @@ $router->get('/', function () use ($router) {
 
 $router->group(['prefix' => 'api/v1/'], function ($router) {
     //Sätt alltid statiska routes(entries/search) före dynamiska(entries/{id})
+    $router->get('noauth/currentservertime','EventController@noauthgetCurrentServerTime');
     $router->get('login/','UserController@authenticate');
 
     $router->get('users','UserController@index');
